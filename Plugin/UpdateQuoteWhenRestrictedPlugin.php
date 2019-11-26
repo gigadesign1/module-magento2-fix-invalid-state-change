@@ -6,6 +6,8 @@ declare(strict_types=1);
 
 namespace Gigadesign\FixInvalidStateChange\Plugin;
 
+use Gigadesign\LogOrderFailures\Logger\Logger;
+
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -35,18 +37,26 @@ class UpdateQuoteWhenRestrictedPlugin
     protected $quoteRepository;
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
      * @param UserContextInterface $userContext
      * @param CartManagementInterface $cartManagement
      * @param CartRepositoryInterface $quoteRepository
+     * @param Logger $logger
      */
     public function __construct(
         UserContextInterface $userContext,
         CartManagementInterface $cartManagement,
-        CartRepositoryInterface $quoteRepository
+        CartRepositoryInterface $quoteRepository,
+	Logger $logger
     ) {
         $this->userContext = $userContext;
         $this->cartManagement = $cartManagement;
         $this->quoteRepository = $quoteRepository;
+	$this->logger = $logger;
     }
 
     /**
@@ -60,6 +70,13 @@ class UpdateQuoteWhenRestrictedPlugin
     {
         if (!$result)
         {
+	    $contextUserType = (is_null($this->userContext->getUserType())) ? "null" : $this->userContext->getUserType();
+            $contextUserId = (is_null($this->userContext->getUserId())) ? "null" : $this->userContext->getUserId();
+            $quoteId = (is_null($quote->getId())) ? "null" : $quote->getId();
+            $quoteCustomerId = (is_null($quote->getCustomerId())) ? "null" : $quote->getCustomerId();
+
+            $this->logger->info('Context UserType ' . $contextUserType . ' userId ' . $contextUserId . ' Quote Id ' . $quoteId . ' Quote CustomerId ' . $quoteCustomerId);
+
             if (is_null($quote->getCustomerId()) && $this->userContext->getUserId())
             {
                 $this->cartManagement->assignCustomer($quote->getId(), $this->userContext->getUserId(), $quote->getStoreId());
