@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 namespace Gigadesign\FixInvalidStateChange\Plugin;
 
-use Gigadesign\LogOrderFailures\Logger\Logger;
+use Gigadesign\FixInvalidStateChange\Logger\Logger;
 
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Quote\Api\CartManagementInterface;
